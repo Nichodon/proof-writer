@@ -8,9 +8,10 @@ reasons = []
 line_nums = []
 refs = []
 
-codes = ["`a", "`t", "`s", "`r", "`l", "`c", "`par", "`per"]
-latex = ["angle", "triangle", "overline", "overrightarrow", "overleftrightarrow", "cong", "|", "perp"]
+codes = ["`a", "`t", "`s", "`r", "`l", "`c", "`par", "`per", "`q"]
+latex = ["angle", "triangle", "overline", "overrightarrow", "overleftrightarrow", "cong", "|", "perp", "square"]
 bracketed = ["`s", "`r", "`l"]
+actual = ["angle", "triangle", "segment", "ray", "line", "congruent", "parallel", "perpendicular", "quadrilateral"]
 
 
 def insert():
@@ -96,12 +97,12 @@ def parse(par):
 
 def really_important():
     full = "\\begin{enumerate}\\setcounter{enumi}{"
-    full += str(p.get()) + "}\\item " + parse(e1.get()) + "\\\\" + parse(e2.get())
+    full += str(int(p.get()) - 1) + "}\\item " + parse(e1.get()) + "\\\\" + parse(e2.get())
     full += "\\\\\\\\\\renewcommand{\\arraystretch}{1.5}%\n\\begin{tabular}{rp{5cm}|p{5cm}l}\\multicolumn{2}{l}{Statements}&\\multicolumn{2}{l}{Reasons}\\\\\\hline\n"
     for i in range(0, len(statements), 1):
         full += str(i+1) + ".&"
         full += parse(statements[i].get()) + "&"
-        full += reasons[i].get() + "&"
+        full += parse(reasons[i].get()) + "&"
         if not refs[i].get() == "0":
             full += refs[i].get()
         full += "\\\\"
