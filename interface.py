@@ -3,7 +3,7 @@ import tkFileDialog
 import tkMessageBox
 
 tk = Tk()
-tk.wm_title("ProofR v0.3")
+tk.wm_title("LaTeX Proof Editor")
 
 statements = []
 reasons = []
@@ -30,7 +30,7 @@ def guide():
     f = refs[-1]
     out += "[\'" + s.get() + "\',\'" + r.get() + "\',\'" + f.get() + "\']]"
 
-    filer = tkFileDialog.asksaveasfile(mode='w', defaultextension=".proof")
+    filer = tkFileDialog.asksaveasfile(mode='w', defaultextension=".proof", filetypes=[("Proof File", "*.proof")])
     if filer is None:
         return
     filer.write(out)
@@ -38,7 +38,7 @@ def guide():
 
 
 def open_file():
-    filer = tkFileDialog.askopenfile(mode='r', defaultextension=".proof")
+    filer = tkFileDialog.askopenfile(mode='r', defaultextension=".proof", filetypes=[("Proof File", "*.proof")])
     if filer is None:
         return
     try:
@@ -304,10 +304,8 @@ def translate(par):
             command += l[j]
         if stage == 0 and not l[j] == "`":
             line += l[j]
-    try:
+    if not command == "":
         line += actual[codes.index(command)]
-    except ValueError:
-        pass
     return line
 
 insert()
