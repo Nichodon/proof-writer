@@ -10,10 +10,13 @@ reasons = []
 line_nums = []
 refs = []
 
+stops = ['.', ',', ';', "$"]
 codes = ["`a", "`t", "`s", "`r", "`l", "`c", "`par", "`per", "`q", "`nc", "`npar", "`nper", "`n"]
-latex = ["angle", "triangle", "overline", "overrightarrow", "overleftrightarrow", "cong", "|", "perp", "square", "ncong", "nparallel", "not\\perp", "ne"]
+latex = ["\\angle", "\\triangle", "\\overline", "\\overrightarrow", "\\overleftrightarrow", "\\cong", "\\|", "\\perp",
+         "\\square", "\\ncong", "\\nparallel", "not\\perp", "\\ne"]
 bracketed = ["`s", "`r", "`l"]
-actual = ["angle", "triangle", "segment", "ray", "line", "congruent", "parallel", "perpendicular", "quadrilateral", "not congruent", "not parallel", "not perpendicular", "not equal"]
+actual = ["angle", "triangle", "segment", "ray", "line", "congruent", "parallel", "perpendicular", "quadrilateral",
+          "not congruent", "not parallel", "not perpendicular", "not equal"]
 
 
 def guide():
@@ -156,11 +159,12 @@ def really_important():
     try:
         full = "\\begin{enumerate}\\setcounter{enumi}{"
         full += str(int(p2.get()) - 1) + "}\\item " + parse(e1.get()) + "\\\\" + parse(e2.get())
-        full += "\\\\\\\\\\renewcommand{\\arraystretch}{1.5}%\n\\begin{tabular}{rp{5cm}|p{5cm}l}\\multicolumn{2}{l}{Statements}&\\multicolumn{2}{l}{Reasons}\\\\\\hline\n"
+        full += "\\\\\\\\\\renewcommand{\\arraystretch}{1.5}%\n\\begin{tabular}{rp{5cm}|p{5cm}l}" \
+                "\\multicolumn{2}{l}{Statements}&\\multicolumn{2}{l}{Reasons}\\\\\\hline\n"
         for i in range(0, len(statements), 1):
             full += str(i+1) + ".&"
             full += parse(statements[i].get()) + "&"
-            full += translate(reasons[i].get()) + "&"
+            full += parse(reasons[i].get()) + "&"
             if not refs[i].get() == "0":
                 full += refs[i].get()
             full += "\\\\"
@@ -176,11 +180,11 @@ f1.grid(row=0, column=0, columnspan=100)
 d = Button(f1, text="Copy LaTeX", command=really_important, width=10, height=1, background="#BFFFBF")
 d.grid(row=0, column=0, padx=5)
 
-h = Button(f1, text="Save as", command=guide, width=10, height=1, background="#BFFFFF")
-h.grid(row=0, column=1, padx=5)
+h1 = Button(f1, text="Save as", command=guide, width=10, height=1, background="#BFFFFF")
+h1.grid(row=0, column=1, padx=5)
 
-j = Button(f1, text="Open", command=open_file, width=10, height=1, background="#BFFFFF")
-j.grid(row=0, column=2, padx=5)
+h2 = Button(f1, text="Open", command=open_file, width=10, height=1, background="#BFFFFF")
+h2.grid(row=0, column=2, padx=5)
 
 b1 = Button(f1, text="Insert end", command=insert, width=10, height=1, background="#FFFFBF")
 b1.grid(row=0, column=3, padx=5)
@@ -219,97 +223,69 @@ def parse(par):
     inset = ""
     for j in range(0, len(l), 1):
         if l[j] == '`':
-            parsing = True
-            if stage == 2:
-                try:
-                    line += "\\" + latex[codes.index(command)]
-                except ValueError:
-                    pass
-                line += "{" + inset + "}"
+            if stage == 1:
+                array = actual
+                if parsing:
+                    array = latex
+                if command in codes:
+                    line += array[codes.index(command)]
+                command = ""
+                inset = ""
+            elif stage == 2:
+                if command in codes:
+                    line += latex[codes.index(command)] + "{" + inset + "}"
                 command = ""
                 inset = ""
             stage = 1
-            try:
-                line += "\\" + latex[codes.index(command)]
-            except ValueError:
-                pass
-                ''' if stage == 3:
-                stage = 0
-                line += "{" + inset + "}"
-                command = ""
-                inset = ""'''
-        if stage == 2 and l[j] == "$":
-            try:
-                line += "\\" + latex[codes.index(command)]
-            except ValueError:
-                pass
-            stage = 0
-            line += "{" + inset + "}"
-            command = ""
-            inset = ""
-        if l[j] == ' ' and parsing:
-            stage += 1
-            if command not in bracketed:
-                stage = 0
-                try:
-                    line += "\\" + latex[codes.index(command)]
-                except ValueError:
-                    pass
-                command = ""
-                inset = ""
-                parsing = False
-            elif stage == 3:
-                try:
-                    line += "\\" + latex[codes.index(command)]
-                except ValueError:
-                    pass
-                stage = 0
-                line += "{" + inset + "}"
-                command = ""
-                inset = ""
-        if stage == 1:
-            command += l[j]
-        if stage == 2 and not l[j] == ' ':
-            inset += l[j]
-        if stage == 0 and not l[j] == "`":
+        elif stage == 0:
             line += l[j]
-    try:
-        line += "\\" + latex[codes.index(command)]
-    except ValueError:
-        pass
+        if stage == 1:
+            if l[j] in stops:
+                array = actual
+                if parsing:
+                    array = latex
+                if command in codes:
+                    line += array[codes.index(command)] + l[j]
+                stage = 0
+                command = ""
+                inset = ""
+            elif l[j] == ' ':
+                stage = 2
+                print command
+                if parsing and command not in bracketed:
+                    if command in codes:
+                        line += latex[codes.index(command)] + ' '
+                    stage = 0
+                    command = ""
+                    inset = ""
+                elif not parsing:
+                    if command in codes:
+                        line += actual[codes.index(command)] + ' '
+                    stage = 0
+                    command = ""
+                    inset = ""
+            else:
+                command += l[j]
+        elif stage == 2:
+            if l[j] in stops or l[j] == ' ':
+                if command in codes:
+                    line += latex[codes.index(command)] + "{" + inset + "}" + l[j]
+                stage = 0
+                command = ""
+                inset = ""
+            else:
+                inset += l[j]
+        if l[j] == '$':
+            parsing = not parsing
+    if command in codes:
+        array = actual
+        if parsing:
+            array = latex
+        line += array[codes.index(command)]
     if command in bracketed:
         line += "{" + inset + "}"
-    return line
-
-
-def translate(par):
-    l = list(par)
-    parsing = False
-    command = ""
-    line = ""
-    stage = 0
-    for j in range(0, len(l), 1):
-        if l[j] == '`':
-            parsing = True
-            stage = 1
-        if l[j] == ' ' and parsing:
-            stage = 0
-            try:
-                line += actual[codes.index(command)]
-            except ValueError:
-                pass
-            command = ""
-            parsing = False
-        if stage == 1:
-            command += l[j]
-        if stage == 0 and not l[j] == "`":
-            line += l[j]
-    if not command == "":
-        line += actual[codes.index(command)]
     return line
 
 insert()
 
 mainloop()
-
-
