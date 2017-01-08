@@ -1,6 +1,7 @@
 from Tkinter import *
 import tkFileDialog
 import tkMessageBox
+import os
 
 tk = Tk()
 tk.wm_title("LaTeX Proof Editor")
@@ -11,12 +12,12 @@ line_nums = []
 refs = []
 
 stops = ['.', ',', ';', "$"]
-codes = ["`a", "`t", "`s", "`r", "`l", "`c", "`par", "`per", "`q", "`nc", "`npar", "`nper", "`n"]
+codes = ["`a", "`t", "`s", "`r", "`l", "`c", "`par", "`per", "`q", "`nc", "`npar", "`nper", "`n", "`th"]
 latex = ["\\angle", "\\triangle", "\\overline", "\\overrightarrow", "\\overleftrightarrow", "\\cong", "\\|", "\\perp",
-         "\\square", "\\ncong", "\\nparallel", "not\\perp", "\\ne"]
+         "\\square", "\\ncong", "\\nparallel", "not\\perp", "\\ne", "\\therefore"]
 bracketed = ["`s", "`r", "`l"]
 actual = ["angle", "triangle", "segment", "ray", "line", "congruent", "parallel", "perpendicular", "quadrilateral",
-          "not congruent", "not parallel", "not perpendicular", "not equal"]
+          "not congruent", "not parallel", "not perpendicular", "not equal", "therefore"]
 
 
 def guide():
@@ -88,6 +89,7 @@ def open_file():
                 reasons.append(en2)
                 refs.append(sb)
 
+            tk.wm_title("Editing " + os.path.basename(filer.name)[:-6])
     except TypeError:
         tkMessageBox.showerror("Oops!", "Unable to open file; use .proof file extension")
     except SyntaxError:
