@@ -176,28 +176,34 @@ def really_important():
     except ValueError:
         tkMessageBox.showerror("Oops!", "Make sure all spin boxes have numbers only")
 
-f1 = LabelFrame(tk, padx=10, pady=10, text="Options")
+f1 = LabelFrame(tk, relief=FLAT, padx=10, pady=10)
 f1.grid(row=0, column=0, columnspan=100)
 
-d = Button(f1, text="Copy LaTeX", command=really_important, width=10, height=1, background="#BFFFBF")
+f5 = LabelFrame(f1, padx=10, pady=10, text="File")
+f5.grid(row=0, column=0)
+
+d = Button(f5, text="Copy LaTeX", command=really_important, width=10, height=1, background="#BFFFBF")
 d.grid(row=0, column=0, padx=5)
 
-h1 = Button(f1, text="Save as", command=guide, width=10, height=1, background="#BFFFFF")
+h1 = Button(f5, text="Save as", command=guide, width=10, height=1, background="#BFFFFF")
 h1.grid(row=0, column=1, padx=5)
 
-h2 = Button(f1, text="Open", command=open_file, width=10, height=1, background="#BFFFFF")
+h2 = Button(f5, text="Open", command=open_file, width=10, height=1, background="#BFFFFF")
 h2.grid(row=0, column=2, padx=5)
 
-b1 = Button(f1, text="Insert end", command=insert, width=10, height=1, background="#FFFFBF")
+f4 = LabelFrame(f1, padx=10, pady=10, text="Edit")
+f4.grid(row=0, column=1)
+
+b1 = Button(f4, text="Insert end", command=insert, width=10, height=1, background="#FFFFBF")
 b1.grid(row=0, column=3, padx=5)
 
-b3 = Button(f1, text="Insert at", command=insert_at, width=10, height=1, background="#FFFFBF")
+b3 = Button(f4, text="Insert at", command=insert_at, width=10, height=1, background="#FFFFBF")
 b3.grid(row=0, column=4, padx=5)
 
-b2 = Button(f1, text="Remove at", command=remove, width=10, height=1, background="#FFBFBF")
+b2 = Button(f4, text="Remove at", command=remove, width=10, height=1, background="#FFBFBF")
 b2.grid(row=0, column=5, padx=5)
 
-p1 = Spinbox(f1, from_=1, to=1000, width=5)
+p1 = Spinbox(f4, from_=1, to=1000, width=5)
 p1.grid(row=0, column=6, padx=5)
 
 f2 = LabelFrame(tk, relief=FLAT, padx=10, pady=10)
