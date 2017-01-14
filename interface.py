@@ -4,7 +4,7 @@ import tkMessageBox
 import os
 
 tk = Tk()
-tk.wm_title("LaTeX Proof Editor")
+tk.wm_title("LaTeX Proof Editor: New File")
 
 statements = []
 reasons = []
@@ -54,7 +54,6 @@ def open_file():
         lines = eval(filer.read())
 
         if tkMessageBox.askyesno("Are you sure?", "All unsaved changes will be lost"):
-
             for i in range(0, len(statements), 1):
                 line_nums[i].grid_forget()
                 statements[i].grid_forget()
@@ -89,7 +88,7 @@ def open_file():
                 reasons.append(en2)
                 refs.append(sb)
 
-            tk.wm_title("Editing " + os.path.basename(filer.name)[:-6])
+            tk.wm_title("LaTeX Proof Editor: " + os.path.basename(filer.name)[:-6])
     except TypeError:
         tkMessageBox.showerror("Oops!", "Unable to open file; use .proof file extension")
     except SyntaxError:
@@ -158,11 +157,13 @@ def remove():
 
 
 def really_important():
+    if tkMessageBox.askyesno("Save file", "Save changes to file?"):
+        guide()
     try:
         full = "\\begin{enumerate}\\setcounter{enumi}{"
         full += str(int(p2.get()) - 1) + "}\\item " + parse(e1.get()) + "\\\\" + parse(e2.get())
-        full += "\\\\\\\\\\renewcommand{\\arraystretch}{1.5}%\n\\begin{tabular}{rp{5cm}|p{5cm}l}" \
-                "\\multicolumn{2}{l}{Statements}&\\multicolumn{2}{l}{Reasons}\\\\\\hline\n"
+        full += "\\\\\\renewcommand{\\arraystretch}{1.5}\\begin{tabular}{rp{5cm}|p{5cm}l}\\multicolumn{2}{l}" \
+                "{Statements}&\\multicolumn{2}{l}{Reasons}\\\\\\hline"
         for i in range(0, len(statements), 1):
             full += str(i+1) + ".&"
             full += parse(statements[i].get()) + "&"
@@ -259,7 +260,6 @@ def parse(par):
                 inset = ""
             elif l[j] == ' ':
                 stage = 2
-                print command
                 if parsing and command not in bracketed:
                     if command in codes:
                         line += latex[codes.index(command)] + ' '
