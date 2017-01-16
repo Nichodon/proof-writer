@@ -2,47 +2,58 @@ from Tkinter import *
 import tkFileDialog
 import tkMessageBox
 import os
+import getpass
 
 tk = Tk()
-tk.wm_title("LaTeX Proof Editor: New File")
+tk.wm_title('LaTeX Proof Editor: New File')
 
 statements = []
 reasons = []
 line_nums = []
 refs = []
 
-stops = ['.', ',', ';', "$"]
-codes = ["`a", "`t", "`s", "`r", "`l", "`c", "`par", "`per", "`q", "`nc", "`npar", "`nper", "`n", "`th"]
-latex = ["\\angle", "\\triangle", "\\overline", "\\overrightarrow", "\\overleftrightarrow", "\\cong", "\\|", "\\perp",
-         "\\square", "\\ncong", "\\nparallel", "not\\perp", "\\ne", "\\therefore"]
-bracketed = ["`s", "`r", "`l"]
-actual = ["angle", "triangle", "segment", "ray", "line", "congruent", "parallel", "perpendicular", "quadrilateral",
-          "not congruent", "not parallel", "not perpendicular", "not equal", "therefore"]
+stops = ['.', ',', ';', '$']
+codes = ['`a', '`t', '`s', '`r', '`l', '`c', '`par', '`per', '`q', '`nc', '`npar', '`nper', '`n', '`th']
+latex = ['\\angle', '\\triangle', '\\overline', '\\overrightarrow', '\\overleftrightarrow', '\\cong', '\\|', '\\perp',
+         '\\square', '\\ncong', '\\nparallel', 'not\\perp', '\\ne', '\\therefore']
+bracketed = ['`s', '`r', '`l']
+actual = ['angle', 'triangle', 'segment', 'ray', 'line', 'congruent', 'parallel', 'perpendicular', 'quadrilateral',
+          'not congruent', 'not parallel', 'not perpendicular', 'not equal', 'therefore']
 
 
-def guide():
-    out = "["
+def save_call(event):
+    event.widget.focus()
+    save_file()
+
+
+def save_file():
+    out = '['
 
     for i in range(0, len(statements) - 1, 1):
         s = statements[i]
         r = reasons[i]
         f = refs[i]
-        out += "[\'" + s.get() + "\',\'" + r.get() + "\',\'" + f.get() + "\'],"
+        out += '[\'' + s.get() + '\',\'' + r.get() + '\',\'' + f.get() + '\'],'
 
     s = statements[-1]
     r = reasons[-1]
     f = refs[-1]
-    out += "[\'" + s.get() + "\',\'" + r.get() + "\',\'" + f.get() + "\']]"
+    out += '[\'' + s.get() + '\',\'' + r.get() + '\',\'' + f.get() + '\']]'
 
-    filer = tkFileDialog.asksaveasfile(mode='w', defaultextension=".proof", filetypes=[("Proof File", "*.proof")])
+    filer = tkFileDialog.asksaveasfile(mode='w', defaultextension='.proof', filetypes=[('Proof File', '*.proof')])
     if filer is None:
         return
     filer.write(out)
     filer.close()
+    
+    
+def open_call(event):
+    event.widget.focus()
+    open_file()
 
 
 def open_file():
-    filer = tkFileDialog.askopenfile(mode='r', defaultextension=".proof", filetypes=[("Proof File", "*.proof")])
+    filer = tkFileDialog.askopenfile(mode='r', defaultextension='.proof', filetypes=[('Proof File', '*.proof')])
     if filer is None:
         return
     try:
@@ -53,7 +64,7 @@ def open_file():
 
         lines = eval(filer.read())
 
-        if tkMessageBox.askyesno("Are you sure?", "All unsaved changes will be lost"):
+        if tkMessageBox.askyesno('Are you sure?', 'All unsaved changes will be lost'):
             for i in range(0, len(statements), 1):
                 line_nums[i].grid_forget()
                 statements[i].grid_forget()
@@ -68,7 +79,7 @@ def open_file():
             for i in range(0, len(lines), 1):
                 line_data = lines[i]
 
-                m = Label(f3, text=str(len(statements)+1)+".", width=5)
+                m = Label(f3, text=str(len(statements)+1)+'.', width=5)
                 m.grid(row=len(statements), column=0)
 
                 en1 = Entry(f3, width=50)
@@ -88,15 +99,15 @@ def open_file():
                 reasons.append(en2)
                 refs.append(sb)
 
-            tk.wm_title("LaTeX Proof Editor: " + os.path.basename(filer.name)[:-6])
+            tk.wm_title('LaTeX Proof Editor: ' + os.path.basename(filer.name)[:-6])
     except TypeError:
-        tkMessageBox.showerror("Oops!", "Unable to open file; use .proof file extension")
+        tkMessageBox.showerror('Oops!', 'Unable to open file; use .proof file extension')
     except SyntaxError:
-        tkMessageBox.showerror("Oops!", "Unable to open file; use .proof file extension")
+        tkMessageBox.showerror('Oops!', 'Unable to open file; use .proof file extension')
 
 
 def insert():
-    m = Label(f3, text=str(len(statements)+1)+".", width=5)
+    m = Label(f3, text=str(len(statements)+1)+'.', width=5)
     m.grid(row=len(statements), column=0)
 
     en1 = Entry(f3, width=50)
@@ -115,7 +126,7 @@ def insert():
 
 
 def insert_at():
-    m = Label(f3, text=str(len(statements)+1)+".", width=5)
+    m = Label(f3, text=str(len(statements)+1)+'.', width=5)
     m.grid(row=len(statements), column=0)
 
     en1 = Entry(f3, width=50)
@@ -156,52 +167,76 @@ def remove():
         refs[i].grid(row=i, column=7)
 
 
-def really_important():
-    if tkMessageBox.askyesno("Save file", "Save changes to file?"):
-        guide()
+def print_call(event):
+    event.widget.focus()
+    print_file()
+
+
+def print_file():
+    if tkMessageBox.askyesno('Save file', 'Save changes to file?'):
+        save_file()
     try:
-        full = "\\begin{enumerate}\\setcounter{enumi}{"
-        full += str(int(p2.get()) - 1) + "}\\item " + parse(e1.get()) + "\\\\" + parse(e2.get())
-        full += "\\\\\\renewcommand{\\arraystretch}{1.5}\\begin{tabular}{rp{5cm}|p{5cm}l}\\multicolumn{2}{l}" \
-                "{Statements}&\\multicolumn{2}{l}{Reasons}\\\\\\hline"
+        full = '\\begin{enumerate}\\setcounter{enumi}{'
+        full += str(int(p2.get()) - 1) + '}\\item ' + parse(e1.get()) + '\\\\' + parse(e2.get())
+        full += '\\\\\\renewcommand{\\arraystretch}{1.5}\\begin{tabular}{rp{5cm}|p{5cm}l}\\multicolumn{2}{l}' \
+                '{Statements}&\\multicolumn{2}{l}{Reasons}\\\\\\hline'
         for i in range(0, len(statements), 1):
-            full += str(i+1) + ".&"
-            full += parse(statements[i].get()) + "&"
-            full += parse(reasons[i].get()) + "&"
-            if not refs[i].get() == "0":
+            full += str(i+1) + '.&'
+            full += parse(statements[i].get()) + '&'
+            full += parse(reasons[i].get()) + '&'
+            if not refs[i].get() == '0':
                 full += refs[i].get()
-            full += "\\\\"
-        full += "\\end{tabular}\\end{enumerate}"
+            full += '\\\\'
+        full += '\\end{tabular}\\end{enumerate}'
         tk.clipboard_clear()
         tk.clipboard_append(full)
     except ValueError:
-        tkMessageBox.showerror("Oops!", "Make sure all spin boxes have numbers only")
+        tkMessageBox.showerror('Oops!', 'Make sure all spin boxes have numbers only')
+
+
+def new_call(event):
+    event.widget.focus()
+    new_file()
+
+
+def new_file():
+    global statements
+    global reasons
+    global line_nums
+    global refs
+
+    for x in statements:
+        x.grid_forget()
+    for x in reasons:
+        x.grid_forget()
+    for x in line_nums:
+        x.grid_forget()
+    for x in refs:
+        x.grid_forget()
+
+    statements = []
+    reasons = []
+    line_nums = []
+    refs = []
+
+    e1.delete(0, END)
+    e2.delete(0, END)
+
+    insert()
 
 f1 = LabelFrame(tk, relief=FLAT, padx=10, pady=10)
 f1.grid(row=0, column=0, columnspan=100)
 
-f5 = LabelFrame(f1, padx=10, pady=10, text="File")
-f5.grid(row=0, column=0)
-
-d = Button(f5, text="Copy LaTeX", command=really_important, width=10, height=1, background="#BFFFBF")
-d.grid(row=0, column=0, padx=5)
-
-h1 = Button(f5, text="Save as", command=guide, width=10, height=1, background="#BFFFFF")
-h1.grid(row=0, column=1, padx=5)
-
-h2 = Button(f5, text="Open", command=open_file, width=10, height=1, background="#BFFFFF")
-h2.grid(row=0, column=2, padx=5)
-
-f4 = LabelFrame(f1, padx=10, pady=10, text="Edit")
+f4 = LabelFrame(f1, padx=10, pady=10, text='Edit')
 f4.grid(row=0, column=1)
 
-b1 = Button(f4, text="Insert end", command=insert, width=10, height=1, background="#FFFFBF")
+b1 = Button(f4, text='Insert end', command=insert, width=10, height=1, background='#FFFFBF')
 b1.grid(row=0, column=3, padx=5)
 
-b3 = Button(f4, text="Insert at", command=insert_at, width=10, height=1, background="#FFFFBF")
+b3 = Button(f4, text='Insert at', command=insert_at, width=10, height=1, background='#FFFFBF')
 b3.grid(row=0, column=4, padx=5)
 
-b2 = Button(f4, text="Remove at", command=remove, width=10, height=1, background="#FFBFBF")
+b2 = Button(f4, text='Remove at', command=remove, width=10, height=1, background='#FFBFBF')
 b2.grid(row=0, column=5, padx=5)
 
 p1 = Spinbox(f4, from_=1, to=1000, width=5)
@@ -222,14 +257,38 @@ e2.grid(row=1, column=1, columnspan=7)
 f3 = LabelFrame(tk, relief=FLAT, padx=10, pady=10)
 f3.grid(row=2, column=0, columnspan=100)
 
+m1 = Menu(tk)
+
+m2 = Menu(m1, tearoff=0)
+m2.add_command(label='New', command=new_file, accelerator='Ctrl-N')
+m2.add_command(label='Open', command=open_file, accelerator='Ctrl-O')
+m2.add_command(label='Save', command=save_file, accelerator='Ctrl-S')
+# m2.add_command(label='Save as', command=save_file, accelerator='Ctrl-Shift-S')
+m2.add_separator()
+m2.add_command(label='LaTeX', command=print_file, accelerator='Ctrl-P')
+
+m3 = Menu(m1, tearoff=0)
+m3.add_command(label='Hi', command=save_file)
+m3.add_command(label='Open file', command=open_file)
+m3.add_command(label='Generate LaTeX', command=open_file)
+
+m1.add_cascade(label='File', menu=m2)
+# m1.add_cascade(label='Edit', menu=m3)
+
+tk.config(menu=m1)
+tk.bind_all('<Control-n>', new_call)
+tk.bind_all('<Control-o>', open_call)
+tk.bind_all('<Control-s>', save_call)
+tk.bind_all('<Control-p>', print_call)
+
 
 def parse(par):
     l = list(par)
     parsing = False
-    command = ""
-    line = ""
+    command = ''
+    line = ''
     stage = 0
-    inset = ""
+    inset = ''
     for j in range(0, len(l), 1):
         if l[j] == '`':
             if stage == 1:
@@ -238,13 +297,13 @@ def parse(par):
                     array = latex
                 if command in codes:
                     line += array[codes.index(command)]
-                command = ""
-                inset = ""
+                command = ''
+                inset = ''
             elif stage == 2:
                 if command in codes:
-                    line += latex[codes.index(command)] + "{" + inset + "}"
-                command = ""
-                inset = ""
+                    line += latex[codes.index(command)] + '{' + inset + '}'
+                command = ''
+                inset = ''
             stage = 1
         elif stage == 0:
             line += l[j]
@@ -256,31 +315,31 @@ def parse(par):
                 if command in codes:
                     line += array[codes.index(command)] + l[j]
                 stage = 0
-                command = ""
-                inset = ""
+                command = ''
+                inset = ''
             elif l[j] == ' ':
                 stage = 2
                 if parsing and command not in bracketed:
                     if command in codes:
                         line += latex[codes.index(command)] + ' '
                     stage = 0
-                    command = ""
-                    inset = ""
+                    command = ''
+                    inset = ''
                 elif not parsing:
                     if command in codes:
                         line += actual[codes.index(command)] + ' '
                     stage = 0
-                    command = ""
-                    inset = ""
+                    command = ''
+                    inset = ''
             else:
                 command += l[j]
         elif stage == 2:
             if l[j] in stops or l[j] == ' ':
                 if command in codes:
-                    line += latex[codes.index(command)] + "{" + inset + "}" + l[j]
+                    line += latex[codes.index(command)] + '{' + inset + '}' + l[j]
                 stage = 0
-                command = ""
-                inset = ""
+                command = ''
+                inset = ''
             else:
                 inset += l[j]
         if l[j] == '$':
@@ -291,8 +350,10 @@ def parse(par):
             array = latex
         line += array[codes.index(command)]
     if command in bracketed:
-        line += "{" + inset + "}"
+        line += '{' + inset + '}'
     return line
+
+print getpass.getuser() + '\n' + sys.platform
 
 insert()
 
