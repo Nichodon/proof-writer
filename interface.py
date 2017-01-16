@@ -175,11 +175,18 @@ def print_call(event):
 def print_file():
     if tkMessageBox.askyesno('Save file', 'Save changes to file?'):
         save_file()
+    lonely = tkMessageBox.askyesno('Options', 'Is this a lonely proof?\nIf you have no idea, choose yes')
     try:
-        full = '\\begin{enumerate}\\setcounter{enumi}{'
-        full += str(int(p2.get()) - 1) + '}\\item ' + parse(e1.get()) + '\\\\' + parse(e2.get())
-        full += '\\\\\\renewcommand{\\arraystretch}{1.5}\\begin{tabular}{rp{5cm}|p{5cm}l}\\multicolumn{2}{l}' \
-                '{Statements}&\\multicolumn{2}{l}{Reasons}\\\\\\hline'
+        full = ''
+        if lonely:
+            full += '\\begin{enumerate}'
+        full += '\\setcounter{enumi}{' + str(int(p2.get()) - 1)
+        full += '}\\item\\renewcommand{\\arraystretch}{1.5}\\begin{tabular}{rp{5cm}|p{5cm}l}'
+        if not e1.get() == '':
+            full += '\\multicolumn{4}{p{10cm}}{' + parse(e1.get()) + '}\\'
+        if not e2.get() == '':
+            full += '\\multicolumn{4}{p{10cm}}{' + parse(e2.get()) + '}\\'
+        full += '\\\\multicolumn{2}{l}{Statements}&\\multicolumn{2}{l}{Reasons}\\\\\\hline'
         for i in range(0, len(statements), 1):
             full += str(i+1) + '.&'
             full += parse(statements[i].get()) + '&'
@@ -187,7 +194,9 @@ def print_file():
             if not refs[i].get() == '0':
                 full += refs[i].get()
             full += '\\\\'
-        full += '\\end{tabular}\\end{enumerate}'
+        full += '\\end{tabular}'
+        if lonely:
+            full += '\\end{enumerate}'
         tk.clipboard_clear()
         tk.clipboard_append(full)
     except ValueError:
@@ -223,6 +232,8 @@ def new_file():
     e2.delete(0, END)
 
     insert()
+
+    save_file()
 
 f1 = LabelFrame(tk, relief=FLAT, padx=10, pady=10)
 f1.grid(row=0, column=0, columnspan=100)
@@ -262,18 +273,11 @@ m1 = Menu(tk)
 m2 = Menu(m1, tearoff=0)
 m2.add_command(label='New', command=new_file, accelerator='Ctrl-N')
 m2.add_command(label='Open', command=open_file, accelerator='Ctrl-O')
-m2.add_command(label='Save', command=save_file, accelerator='Ctrl-S')
-# m2.add_command(label='Save as', command=save_file, accelerator='Ctrl-Shift-S')
+m2.add_command(label='Save as', command=save_file, accelerator='Ctrl-S')
 m2.add_separator()
 m2.add_command(label='LaTeX', command=print_file, accelerator='Ctrl-P')
 
-m3 = Menu(m1, tearoff=0)
-m3.add_command(label='Hi', command=save_file)
-m3.add_command(label='Open file', command=open_file)
-m3.add_command(label='Generate LaTeX', command=open_file)
-
 m1.add_cascade(label='File', menu=m2)
-# m1.add_cascade(label='Edit', menu=m3)
 
 tk.config(menu=m1)
 tk.bind_all('<Control-n>', new_call)
@@ -353,7 +357,7 @@ def parse(par):
         line += '{' + inset + '}'
     return line
 
-print getpass.getuser() + '\n' + sys.platform
+# print getpass.getuser() + '\n' + sys.platform
 
 insert()
 
