@@ -2,7 +2,6 @@ from Tkinter import *
 import tkFileDialog
 import tkMessageBox
 import os
-import getpass
 
 tk = Tk()
 tk.wm_title('LaTeX Proof Editor: New File')
@@ -64,7 +63,7 @@ def open_file():
 
         lines = eval(filer.read())
 
-        if tkMessageBox.askyesno('Are you sure?', 'All unsaved changes will be lost'):
+        if tkMessageBox.askyesno('', 'Are you sure you want to open a file?\nAll unsaved changes will be lost.'):
             for i in range(0, len(statements), 1):
                 line_nums[i].grid_forget()
                 statements[i].grid_forget()
@@ -101,9 +100,9 @@ def open_file():
 
             tk.wm_title('LaTeX Proof Editor: ' + os.path.basename(filer.name)[:-6])
     except TypeError:
-        tkMessageBox.showerror('Oops!', 'Unable to open file; use .proof file extension')
+        tkMessageBox.showerror('', 'Something went wrong reading file!\nThe file might be corrupted')
     except SyntaxError:
-        tkMessageBox.showerror('Oops!', 'Unable to open file; use .proof file extension')
+        tkMessageBox.showerror('', 'Something went wrong reading file!\nThe file might be corrupted')
 
 
 def insert():
@@ -173,9 +172,9 @@ def print_call(event):
 
 
 def print_file():
-    if tkMessageBox.askyesno('Save file', 'Save changes to file?'):
+    if tkMessageBox.askyesno('', 'Save changes to file before copying LaTeX?'):
         save_file()
-    lonely = tkMessageBox.askyesno('Options', 'Is this a lonely proof?\nIf you have no idea, choose yes')
+    lonely = tkMessageBox.askyesno('', 'Is this a lonely proof (not nested)?\nIf you have no idea, choose yes')
     try:
         full = ''
         if lonely:
@@ -185,7 +184,7 @@ def print_file():
         if not e1.get() == '':
             full += '\\multicolumn{4}{p{10cm}}{' + parse(e1.get()) + '}\\'
         if not e2.get() == '':
-            full += '\\multicolumn{4}{p{10cm}}{' + parse(e2.get()) + '}\\'
+            full += '\\\\multicolumn{4}{p{10cm}}{' + parse(e2.get()) + '}\\'
         full += '\\\\multicolumn{2}{l}{Statements}&\\multicolumn{2}{l}{Reasons}\\\\\\hline'
         for i in range(0, len(statements), 1):
             full += str(i+1) + '.&'
@@ -200,7 +199,7 @@ def print_file():
         tk.clipboard_clear()
         tk.clipboard_append(full)
     except ValueError:
-        tkMessageBox.showerror('Oops!', 'Make sure all spin boxes have numbers only')
+        tkMessageBox.showerror('', 'Make sure all number boxes only have numbers.')
 
 
 def new_call(event):
@@ -232,8 +231,6 @@ def new_file():
     e2.delete(0, END)
 
     insert()
-
-    save_file()
 
 f1 = LabelFrame(tk, relief=FLAT, padx=10, pady=10)
 f1.grid(row=0, column=0, columnspan=100)
@@ -356,8 +353,6 @@ def parse(par):
     if command in bracketed:
         line += '{' + inset + '}'
     return line
-
-# print getpass.getuser() + '\n' + sys.platform
 
 insert()
 
