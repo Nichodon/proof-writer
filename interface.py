@@ -1,3 +1,5 @@
+# LaTeX Proof Editor 0.7.x
+
 from Tkinter import *
 import tkFileDialog
 import tkMessageBox
@@ -11,13 +13,17 @@ reasons = []
 line_nums = []
 refs = []
 
-stops = ['.', ',', ';', '$']
-codes = ['`a', '`t', '`s', '`r', '`l', '`c', '`par', '`per', '`q', '`nc', '`npar', '`nper', '`n', '`th']
-latex = ['\\angle', '\\triangle', '\\overline', '\\overrightarrow', '\\overleftrightarrow', '\\cong', '\\|', '\\perp',
-         '\\square', '\\ncong', '\\nparallel', 'not\\perp', '\\ne', '\\therefore']
-bracketed = ['`s', '`r', '`l']
+stops = ['.', ',', ';', '$', '{', '@']
+codes = ['`a', '`t', '`s', '`r', '`l', '`c', '`par', '`per', '`q', '`nc', '`npar', '`nper', '`n', '`th', '`f', '`d']
+latex = ['\\angle', '\\triangle', '\\overline', '\\overrightarrow', '\\overleftrightarrow', '\\cong', '\\parallel',
+         '\\perp', '\\square', '\\ncong', '\\nparallel', 'not\\perp', '\\ne', '\\therefore', '\\frac', '^{\circ}']
+bracketed = ['`s', '`r', '`l', '`f']
 actual = ['angle', 'triangle', 'segment', 'ray', 'line', 'congruent', 'parallel', 'perpendicular', 'quadrilateral',
-          'not congruent', 'not parallel', 'not perpendicular', 'not equal', 'therefore']
+          'not congruent', 'not parallel', 'not perpendicular', 'not equal', 'therefore', 'fraction', 'degree']
+
+codes.extend([i.title() for i in codes])
+latex.extend(latex)
+actual.extend([i.title() for i in actual])
 
 
 def save_call(event):
@@ -28,10 +34,10 @@ def save_call(event):
 def save_file():
     out = '['
 
-    for i in range(0, len(statements) - 1, 1):
-        s = statements[i]
-        r = reasons[i]
-        f = refs[i]
+    for x in range(0, len(statements) - 1, 1):
+        s = statements[x]
+        r = reasons[x]
+        f = refs[x]
         out += '[\'' + s.get() + '\',\'' + r.get() + '\',\'' + f.get() + '\'],'
 
     s = statements[-1]
@@ -64,19 +70,19 @@ def open_file():
         lines = eval(filer.read())
 
         if tkMessageBox.askyesno('', 'Are you sure you want to open a file?\nAll unsaved changes will be lost.'):
-            for i in range(0, len(statements), 1):
-                line_nums[i].grid_forget()
-                statements[i].grid_forget()
-                reasons[i].grid_forget()
-                refs[i].grid_forget()
+            for x in range(0, len(statements), 1):
+                line_nums[x].grid_forget()
+                statements[x].grid_forget()
+                reasons[x].grid_forget()
+                refs[x].grid_forget()
 
             statements = []
             reasons = []
             line_nums = []
             refs = []
 
-            for i in range(0, len(lines), 1):
-                line_data = lines[i]
+            for x in range(0, len(lines), 1):
+                line_data = lines[x]
 
                 m = Label(f3, text=str(len(statements)+1)+'.', width=5)
                 m.grid(row=len(statements), column=0)
@@ -103,6 +109,11 @@ def open_file():
         tkMessageBox.showerror('', 'Something went wrong reading file!\nThe file might be corrupted')
     except SyntaxError:
         tkMessageBox.showerror('', 'Something went wrong reading file!\nThe file might be corrupted')
+
+
+def insert_call(event):
+    event.widget.focus()
+    insert()
 
 
 def insert():
@@ -142,10 +153,10 @@ def insert_at():
     reasons.insert(int(p1.get()) - 1, en2)
     refs.insert(int(p1.get()) - 1, sb)
 
-    for i in range(0, len(statements), 1):
-        statements[i].grid(row=i, column=1, columnspan=3)
-        reasons[i].grid(row=i, column=4, columnspan=3)
-        refs[i].grid(row=i, column=7)
+    for x in range(0, len(statements), 1):
+        statements[x].grid(row=x, column=1, columnspan=3)
+        reasons[x].grid(row=x, column=4, columnspan=3)
+        refs[x].grid(row=x, column=7)
 
 
 def remove():
@@ -160,10 +171,14 @@ def remove():
         reasons.pop(int(p1.get()) - 1)
         refs.pop(int(p1.get()) - 1)
 
-    for i in range(0, len(statements), 1):
-        statements[i].grid(row=i, column=1, columnspan=3)
-        reasons[i].grid(row=i, column=4, columnspan=3)
-        refs[i].grid(row=i, column=7)
+    for x in range(0, len(statements), 1):
+        statements[x].grid(row=x, column=1, columnspan=3)
+        reasons[x].grid(row=i, column=4, columnspan=3)
+        refs[x].grid(row=x, column=7)
+
+
+def alarm(event):
+    event.widget.focus_force()
 
 
 def print_call(event):
@@ -174,24 +189,58 @@ def print_call(event):
 def print_file():
     if tkMessageBox.askyesno('', 'Save changes to file before copying LaTeX?'):
         save_file()
-    lonely = tkMessageBox.askyesno('', 'Is this a lonely proof (not nested)?\nIf you have no idea, choose yes')
+
+    tl = Toplevel()
+    tl.title('LaTeX options')
+
+    f5 = LabelFrame(tl, text='Enumeration')
+    f5.grid(row=0, column=0)
+
+    v1 = IntVar()
+
+    rb1 = Radiobutton(f5, text='Lonely Proof', variable=v1, value=0)
+    rb1.grid(row=0, column=0)
+
+    rb2 = Radiobutton(f5, text='Nested Proof', variable=v1, value=1)
+    rb2.grid(row=1, column=0)
+
+    v2 = StringVar()
+    counter = '\\setcounter{enumi}{' + str(int(p2.get()) - 1) + '}'
+
+    f6 = LabelFrame(tl, text='Set counter')
+    f6.grid(row=0, column=1)
+
+    cb = Checkbutton(f6, text='Enable', variable=v2, onvalue=counter, offvalue='')
+    cb.grid(row=0, column=0)
+
+    b4 = Button(tl, text='Copy LaTeX', command=tl.destroy)
+    b4.grid(row=1, column=0, columnspan=2)
+
+    tl.bind('<FocusOut>', alarm)
+    tl.focus_force()
+
+    tk.wait_window(tl)
+
+    lonely = v1.get() == 0
+
+    print v2.get()
+
     try:
         full = ''
         if lonely:
             full += '\\begin{enumerate}'
-        full += '\\setcounter{enumi}{' + str(int(p2.get()) - 1)
-        full += '}\\item\\renewcommand{\\arraystretch}{1.5}\\begin{tabular}{rp{5cm}|p{5cm}l}'
+        full += v2.get() + '\\item\\renewcommand{\\arraystretch}{1.5}\\begin{tabular}{rp{5cm}|p{5cm}l}'
         if not e1.get() == '':
-            full += '\\multicolumn{4}{p{10cm}}{' + parse(e1.get()) + '}\\'
+            full += '\\multicolumn{4}{p{10cm}}{' + parse(e1.get()) + '}\\\\'
         if not e2.get() == '':
-            full += '\\\\multicolumn{4}{p{10cm}}{' + parse(e2.get()) + '}\\'
-        full += '\\\\multicolumn{2}{l}{Statements}&\\multicolumn{2}{l}{Reasons}\\\\\\hline'
-        for i in range(0, len(statements), 1):
-            full += str(i+1) + '.&'
-            full += parse(statements[i].get()) + '&'
-            full += parse(reasons[i].get()) + '&'
-            if not refs[i].get() == '0':
-                full += refs[i].get()
+            full += '\\multicolumn{4}{p{10cm}}{' + parse(e2.get()) + '}\\\\'
+        full += '\\multicolumn{2}{l}{Statements}&\\multicolumn{2}{l}{Reasons}\\\\\\hline'
+        for x in range(0, len(statements), 1):
+            full += str(x+1) + '.&'
+            full += parse(statements[x].get()) + '&'
+            full += parse(reasons[x].get()) + '&'
+            if not refs[x].get() == '0':
+                full += refs[x].get()
             full += '\\\\'
         full += '\\end{tabular}'
         if lonely:
@@ -231,6 +280,11 @@ def new_file():
     e2.delete(0, END)
 
     insert()
+
+
+def closed():
+    if tkMessageBox.askyesno('', 'Are you sure you want to exit this file?\nAll unsaved changes will be lost.'):
+        tk.destroy()
 
 f1 = LabelFrame(tk, relief=FLAT, padx=10, pady=10)
 f1.grid(row=0, column=0, columnspan=100)
@@ -274,13 +328,25 @@ m2.add_command(label='Save as', command=save_file, accelerator='Ctrl-S')
 m2.add_separator()
 m2.add_command(label='LaTeX', command=print_file, accelerator='Ctrl-P')
 
+m3 = Menu(m1, tearoff=0)
+m3.add_command(label='Insert End', command=insert, accelerator='Ctrl-Enter')
+
 m1.add_cascade(label='File', menu=m2)
+m1.add_cascade(label='Edit', menu=m3)
 
 tk.config(menu=m1)
 tk.bind_all('<Control-n>', new_call)
 tk.bind_all('<Control-o>', open_call)
 tk.bind_all('<Control-s>', save_call)
 tk.bind_all('<Control-p>', print_call)
+tk.bind_all('<Control-Return>', insert_call)
+tk.bind_all('<Command-n>', new_call)
+tk.bind_all('<Command-o>', open_call)
+tk.bind_all('<Command-s>', save_call)
+tk.bind_all('<Command-p>', print_call)
+tk.bind_all('<Command-Return>', insert_call)
+
+tk.protocol('WM_DELETE_WINDOW', closed)
 
 
 def parse(par):
@@ -314,7 +380,9 @@ def parse(par):
                 if parsing:
                     array = latex
                 if command in codes:
-                    line += array[codes.index(command)] + l[j]
+                    line += array[codes.index(command)]
+                    if not l[j] == '@':
+                        line += l[j]
                 stage = 0
                 command = ''
                 inset = ''
