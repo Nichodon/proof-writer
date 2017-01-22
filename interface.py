@@ -1,9 +1,8 @@
-# LaTeX Proof Editor 0.7.x
-
 from Tkinter import *
 import tkFileDialog
 import tkMessageBox
 import os
+import sys
 
 tk = Tk()
 tk.wm_title('LaTeX Proof Editor: New File')
@@ -153,10 +152,18 @@ def insert_at():
     reasons.insert(int(p1.get()) - 1, en2)
     refs.insert(int(p1.get()) - 1, sb)
 
+    tab = [b1, b3, b2, p1, p2, e1, e2]
+
     for x in range(0, len(statements), 1):
         statements[x].grid(row=x, column=1, columnspan=3)
         reasons[x].grid(row=x, column=4, columnspan=3)
         refs[x].grid(row=x, column=7)
+        tab.append(statements[x])
+        tab.append(reasons[x])
+        tab.append(refs[x])
+
+    for x in tab:
+        x.lift()
 
 
 def remove():
@@ -173,12 +180,16 @@ def remove():
 
     for x in range(0, len(statements), 1):
         statements[x].grid(row=x, column=1, columnspan=3)
-        reasons[x].grid(row=i, column=4, columnspan=3)
+        reasons[x].grid(row=x, column=4, columnspan=3)
         refs[x].grid(row=x, column=7)
 
 
-def alarm(event):
+def alarm_call(event):
     event.widget.focus_force()
+
+
+def alarm():
+    pass
 
 
 def print_call(event):
@@ -193,37 +204,41 @@ def print_file():
     tl = Toplevel()
     tl.title('LaTeX options')
 
-    f5 = LabelFrame(tl, text='Enumeration')
+    f5 = LabelFrame(tl, text='Enumeration', padx=5, pady=5)
     f5.grid(row=0, column=0)
 
     v1 = IntVar()
 
-    rb1 = Radiobutton(f5, text='Lonely Proof', variable=v1, value=0)
+    rb1 = Radiobutton(f5, text='Lonely Proof', variable=v1, value=0, padx=5, pady=5)
     rb1.grid(row=0, column=0)
 
-    rb2 = Radiobutton(f5, text='Nested Proof', variable=v1, value=1)
+    rb2 = Radiobutton(f5, text='Nested Proof', variable=v1, value=1, padx=5, pady=5)
     rb2.grid(row=1, column=0)
 
     v2 = StringVar()
     counter = '\\setcounter{enumi}{' + str(int(p2.get()) - 1) + '}'
 
-    f6 = LabelFrame(tl, text='Set counter')
+    f6 = LabelFrame(tl, text='Set counter', padx=5, pady=5)
     f6.grid(row=0, column=1)
 
-    cb = Checkbutton(f6, text='Enable', variable=v2, onvalue=counter, offvalue='')
+    cb = Checkbutton(f6, text='Enable', variable=v2, onvalue=counter, offvalue='', padx=5, pady=5)
     cb.grid(row=0, column=0)
+    cb.select()
 
     b4 = Button(tl, text='Copy LaTeX', command=tl.destroy)
     b4.grid(row=1, column=0, columnspan=2)
 
-    tl.bind('<FocusOut>', alarm)
+    tl.bind('<FocusOut>', alarm_call)
     tl.focus_force()
+    tl.protocol('WM_DELETE_WINDOW', alarm)
+    tl.resizable(False, False)
+    tl.transient(tk)
+    tl.grab_set()
+    tl.geometry('+' + str(tk.winfo_x()) + '+' + str(tk.winfo_y()))
 
     tk.wait_window(tl)
 
     lonely = v1.get() == 0
-
-    print v2.get()
 
     try:
         full = ''
@@ -262,24 +277,25 @@ def new_file():
     global line_nums
     global refs
 
-    for x in statements:
-        x.grid_forget()
-    for x in reasons:
-        x.grid_forget()
-    for x in line_nums:
-        x.grid_forget()
-    for x in refs:
-        x.grid_forget()
+    if tkMessageBox.askyesno('', 'Are you sure you want to create a new file?\nAll unsaved changes will be lost.'):
+        for x in statements:
+            x.grid_forget()
+        for x in reasons:
+            x.grid_forget()
+        for x in line_nums:
+            x.grid_forget()
+        for x in refs:
+            x.grid_forget()
 
-    statements = []
-    reasons = []
-    line_nums = []
-    refs = []
+        statements = []
+        reasons = []
+        line_nums = []
+        refs = []
 
-    e1.delete(0, END)
-    e2.delete(0, END)
+        e1.delete(0, END)
+        e2.delete(0, END)
 
-    insert()
+        insert()
 
 
 def closed():
@@ -335,18 +351,23 @@ m1.add_cascade(label='File', menu=m2)
 m1.add_cascade(label='Edit', menu=m3)
 
 tk.config(menu=m1)
-tk.bind_all('<Control-n>', new_call)
-tk.bind_all('<Control-o>', open_call)
-tk.bind_all('<Control-s>', save_call)
-tk.bind_all('<Control-p>', print_call)
-tk.bind_all('<Control-Return>', insert_call)
-tk.bind_all('<Command-n>', new_call)
-tk.bind_all('<Command-o>', open_call)
-tk.bind_all('<Command-s>', save_call)
-tk.bind_all('<Command-p>', print_call)
-tk.bind_all('<Command-Return>', insert_call)
+
+if sys.platform == 'darwin' or sys.platform[:2] == 'os':
+    tk.bind_all('<Command-n>', new_call)
+    tk.bind_all('<Command-o>', open_call)
+    tk.bind_all('<Command-s>', save_call)
+    tk.bind_all('<Command-p>', print_call)
+    tk.bind_all('<Command-Return>', insert_call)
+else:
+    tk.bind_all('<Control-n>', new_call)
+    tk.bind_all('<Control-o>', open_call)
+    tk.bind_all('<Control-s>', save_call)
+    tk.bind_all('<Control-p>', print_call)
+    tk.bind_all('<Control-Return>', insert_call)
 
 tk.protocol('WM_DELETE_WINDOW', closed)
+tk.resizable(False, True)
+tk.attributes("-topmost", True)
 
 
 def parse(par):
