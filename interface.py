@@ -16,9 +16,10 @@ stops = ['.', ',', ';', '$', '{', '@']
 codes = ['`a', '`t', '`s', '`r', '`l', '`c', '`par', '`per', '`q', '`nc', '`npar', '`nper', '`n', '`th', '`f', '`d']
 latex = ['\\angle', '\\triangle', '\\overline', '\\overrightarrow', '\\overleftrightarrow', '\\cong', '\\parallel',
          '\\perp', '\\square', '\\ncong', '\\nparallel', 'not\\perp', '\\ne', '\\therefore', '\\frac', '^{\circ}']
-bracketed = ['`s', '`r', '`l', '`f']
+bracketed = ['`s', '`r', '`l']
 actual = ['angle', 'triangle', 'segment', 'ray', 'line', 'congruent', 'parallel', 'perpendicular', 'quadrilateral',
           'not congruent', 'not parallel', 'not perpendicular', 'not equal', 'therefore', 'fraction', 'degree']
+shorts = ['N', 'O', 'S', 'P', 'Enter']
 
 codes.extend([i.title() for i in codes])
 latex.extend(latex)
@@ -167,7 +168,7 @@ def insert_at():
 
 
 def remove():
-    if len(line_nums) > 1:
+    if len(line_nums) > 1 and int(p1.get()) <= len(line_nums):
         line_nums[-1].grid_forget()
         statements[int(p1.get()) - 1].grid_forget()
         reasons[int(p1.get()) - 1].grid_forget()
@@ -337,20 +338,7 @@ f3.grid(row=2, column=0, columnspan=100)
 
 m1 = Menu(tk)
 
-m2 = Menu(m1, tearoff=0)
-m2.add_command(label='New', command=new_file, accelerator='Ctrl-N')
-m2.add_command(label='Open', command=open_file, accelerator='Ctrl-O')
-m2.add_command(label='Save as', command=save_file, accelerator='Ctrl-S')
-m2.add_separator()
-m2.add_command(label='LaTeX', command=print_file, accelerator='Ctrl-P')
-
-m3 = Menu(m1, tearoff=0)
-m3.add_command(label='Insert End', command=insert, accelerator='Ctrl-Enter')
-
-m1.add_cascade(label='File', menu=m2)
-m1.add_cascade(label='Edit', menu=m3)
-
-tk.config(menu=m1)
+system = 'Ctrl-'
 
 if sys.platform == 'darwin' or sys.platform[:2] == 'os':
     tk.bind_all('<Command-n>', new_call)
@@ -358,12 +346,28 @@ if sys.platform == 'darwin' or sys.platform[:2] == 'os':
     tk.bind_all('<Command-s>', save_call)
     tk.bind_all('<Command-p>', print_call)
     tk.bind_all('<Command-Return>', insert_call)
+    system = 'Cmmd-'
 else:
     tk.bind_all('<Control-n>', new_call)
     tk.bind_all('<Control-o>', open_call)
     tk.bind_all('<Control-s>', save_call)
     tk.bind_all('<Control-p>', print_call)
     tk.bind_all('<Control-Return>', insert_call)
+
+m2 = Menu(m1, tearoff=0)
+m2.add_command(label='New', command=new_file, accelerator=system + shorts[0])
+m2.add_command(label='Open', command=open_file, accelerator=system + shorts[1])
+m2.add_command(label='Save as', command=save_file, accelerator=system + shorts[2])
+m2.add_separator()
+m2.add_command(label='LaTeX', command=print_file, accelerator=system + shorts[3])
+
+m3 = Menu(m1, tearoff=0)
+m3.add_command(label='Insert End', command=insert, accelerator=system + shorts[4])
+
+m1.add_cascade(label='File', menu=m2)
+m1.add_cascade(label='Edit', menu=m3)
+
+tk.config(menu=m1)
 
 tk.protocol('WM_DELETE_WINDOW', closed)
 tk.resizable(False, True)
