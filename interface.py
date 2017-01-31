@@ -3,6 +3,7 @@ import tkFileDialog
 import tkMessageBox
 import os
 import sys
+import base64
 
 tk = Tk()
 tk.wm_title('LaTeX Proof Editor: New File')
@@ -11,6 +12,7 @@ statements = []
 reasons = []
 line_nums = []
 refs = []
+targets = []
 
 stops = ['.', ',', ';', '$', '{', '@']
 codes = ['`a', '`t', '`s', '`r', '`l', '`c', '`par', '`per', '`q', '`nc', '`npar', '`nper', '`n', '`th', '`f', '`d']
@@ -19,7 +21,8 @@ latex = ['\\angle', '\\triangle', '\\overline', '\\overrightarrow', '\\overleftr
 bracketed = ['`s', '`r', '`l']
 actual = ['angle', 'triangle', 'segment', 'ray', 'line', 'congruent', 'parallel', 'perpendicular', 'quadrilateral',
           'not congruent', 'not parallel', 'not perpendicular', 'not equal', 'therefore', 'fraction', 'degree']
-shorts = ['N', 'O', 'S', 'P', 'Enter']
+
+selected = 0
 
 codes.extend([i.title() for i in codes])
 latex.extend(latex)
@@ -66,7 +69,10 @@ def open_file():
         global reasons
         global line_nums
         global refs
+        global targets
+        global selected
 
+        selected = 0
         lines = eval(filer.read())
 
         if tkMessageBox.askyesno('', 'Are you sure you want to open a file?\nAll unsaved changes will be lost.'):
@@ -75,40 +81,47 @@ def open_file():
                 statements[x].grid_forget()
                 reasons[x].grid_forget()
                 refs[x].grid_forget()
+                targets[x].grid_forget()
 
             statements = []
             reasons = []
             line_nums = []
             refs = []
+            targets = []
 
             for x in range(0, len(lines), 1):
                 line_data = lines[x]
 
-                m = Label(f3, text=str(len(statements)+1)+'.', width=5)
-                m.grid(row=len(statements), column=0)
+                l1 = Label(f3, text=str(len(statements)+1)+'.', width=5)
+                l1.grid(row=len(statements), column=0)
 
                 en1 = Entry(f3, width=50)
-                en1.grid(row=len(statements), column=1, columnspan=3)
+                en1.grid(row=len(statements), column=1)
                 en1.insert(END, line_data[0])
 
                 en2 = Entry(f3, width=50)
-                en2.grid(row=len(statements), column=4, columnspan=3)
+                en2.grid(row=len(statements), column=2)
                 en2.insert(END, line_data[1])
 
                 sb = Entry(f3, width=10)
-                sb.grid(row=len(statements), column=7)
+                sb.grid(row=len(statements), column=3)
                 sb.insert(END, line_data[2])
 
-                line_nums.append(m)
+                l2 = Label(f3, width=5)
+                l2.grid(row=len(statements), column=4)
+
+                line_nums.append(l1)
                 statements.append(en1)
                 reasons.append(en2)
                 refs.append(sb)
+                targets.append(l2)
 
             tk.wm_title('LaTeX Proof Editor: ' + os.path.basename(filer.name)[:-6])
     except TypeError:
         tkMessageBox.showerror('', 'Something went wrong reading file!\nThe file might be corrupted')
     except SyntaxError:
         tkMessageBox.showerror('', 'Something went wrong reading file!\nThe file might be corrupted')
+    update()
 
 
 def insert_call(event):
@@ -117,48 +130,61 @@ def insert_call(event):
 
 
 def insert():
-    m = Label(f3, text=str(len(statements)+1)+'.', width=5)
-    m.grid(row=len(statements), column=0)
+    l1 = Label(f3, text=str(len(statements)+1)+'.', width=5)
+    l1.grid(row=len(statements), column=0)
 
     en1 = Entry(f3, width=50)
-    en1.grid(row=len(statements), column=1, columnspan=3)
+    en1.grid(row=len(statements), column=1)
 
     en2 = Entry(f3, width=50)
-    en2.grid(row=len(statements), column=4, columnspan=3)
+    en2.grid(row=len(statements), column=2)
 
     sb = Entry(f3, width=10)
-    sb.grid(row=len(statements), column=7)
+    sb.grid(row=len(statements), column=3)
 
-    line_nums.append(m)
+    l2 = Label(f3, width=5)
+    l2.grid(row=len(statements), column=4)
+
+    line_nums.append(l1)
     statements.append(en1)
     reasons.append(en2)
     refs.append(sb)
+    targets.append(l2)
+
+
+def insert_at_call(event):
+    event.widget.focus()
+    insert_at()
 
 
 def insert_at():
-    m = Label(f3, text=str(len(statements)+1)+'.', width=5)
-    m.grid(row=len(statements), column=0)
+    l1 = Label(f3, text=str(len(statements)+1)+'.', width=5)
+    l1.grid(row=len(statements), column=0)
 
     en1 = Entry(f3, width=50)
-    en1.grid(row=int(p1.get())-1, column=1, columnspan=3)
+    en1.grid(row=selected, column=1)
 
     en2 = Entry(f3, width=50)
-    en2.grid(row=int(p1.get())-1, column=4, columnspan=3)
+    en2.grid(row=selected, column=2)
 
     sb = Entry(f3, width=10)
-    sb.grid(row=int(p1.get())-1, column=7)
+    sb.grid(row=selected, column=3)
 
-    line_nums.append(m)
-    statements.insert(int(p1.get()) - 1, en1)
-    reasons.insert(int(p1.get()) - 1, en2)
-    refs.insert(int(p1.get()) - 1, sb)
+    l2 = Label(f3, width=5)
+    l2.grid(row=len(statements), column=4)
 
-    tab = [b1, b3, b2, p1, p2, e1, e2]
+    line_nums.append(l1)
+    statements.insert(selected, en1)
+    reasons.insert(selected, en2)
+    refs.insert(selected, sb)
+    targets.append(l2)
+
+    tab = [p2, e1, e2]
 
     for x in range(0, len(statements), 1):
-        statements[x].grid(row=x, column=1, columnspan=3)
-        reasons[x].grid(row=x, column=4, columnspan=3)
-        refs[x].grid(row=x, column=7)
+        statements[x].grid(row=x, column=1)
+        reasons[x].grid(row=x, column=2)
+        refs[x].grid(row=x, column=3)
         tab.append(statements[x])
         tab.append(reasons[x])
         tab.append(refs[x])
@@ -167,22 +193,31 @@ def insert_at():
         x.lift()
 
 
+def remove_call(event):
+    event.widget.focus()
+    remove()
+
+
 def remove():
-    if len(line_nums) > 1 and int(p1.get()) <= len(line_nums):
+    if len(line_nums) > 1 and selected < len(line_nums):
         line_nums[-1].grid_forget()
-        statements[int(p1.get()) - 1].grid_forget()
-        reasons[int(p1.get()) - 1].grid_forget()
-        refs[int(p1.get()) - 1].grid_forget()
+        statements[selected].grid_forget()
+        reasons[selected].grid_forget()
+        refs[selected].grid_forget()
+        targets[-1].grid_forget()
 
         line_nums.pop()
-        statements.pop(int(p1.get()) - 1)
-        reasons.pop(int(p1.get()) - 1)
-        refs.pop(int(p1.get()) - 1)
+        statements.pop(selected)
+        reasons.pop(selected)
+        refs.pop(selected)
+        targets.pop()
 
     for x in range(0, len(statements), 1):
-        statements[x].grid(row=x, column=1, columnspan=3)
-        reasons[x].grid(row=x, column=4, columnspan=3)
-        refs[x].grid(row=x, column=7)
+        statements[x].grid(row=x, column=1)
+        reasons[x].grid(row=x, column=2)
+        refs[x].grid(row=x, column=3)
+
+    update()
 
 
 def alarm_call(event):
@@ -277,6 +312,7 @@ def new_file():
     global reasons
     global line_nums
     global refs
+    global targets
 
     if tkMessageBox.askyesno('', 'Are you sure you want to create a new file?\nAll unsaved changes will be lost.'):
         for x in statements:
@@ -287,39 +323,71 @@ def new_file():
             x.grid_forget()
         for x in refs:
             x.grid_forget()
+        for x in targets:
+            x.grid_forget()
 
         statements = []
         reasons = []
         line_nums = []
         refs = []
+        targets = []
 
         e1.delete(0, END)
         e2.delete(0, END)
 
         insert()
+        update()
 
 
 def closed():
     if tkMessageBox.askyesno('', 'Are you sure you want to exit this file?\nAll unsaved changes will be lost.'):
         tk.destroy()
 
-f1 = LabelFrame(tk, relief=FLAT, padx=10, pady=10)
-f1.grid(row=0, column=0, columnspan=100)
 
-f4 = LabelFrame(f1, padx=10, pady=10, text='Edit')
-f4.grid(row=0, column=1)
+def up_call(event):
+    event.widget.focus()
+    up()
 
-b1 = Button(f4, text='Insert end', command=insert, width=10, height=1, background='#FFFFBF')
-b1.grid(row=0, column=3, padx=5)
 
-b3 = Button(f4, text='Insert at', command=insert_at, width=10, height=1, background='#FFFFBF')
-b3.grid(row=0, column=4, padx=5)
+def up():
+    global selected
 
-b2 = Button(f4, text='Remove at', command=remove, width=10, height=1, background='#FFBFBF')
-b2.grid(row=0, column=5, padx=5)
+    selected -= 1
+    if selected == -1:
+        selected = len(statements) - 1
+    update()
 
-p1 = Spinbox(f4, from_=1, to=1000, width=5)
-p1.grid(row=0, column=6, padx=5)
+
+def down_call(event):
+    event.widget.focus()
+    down()
+
+
+def down():
+    global selected
+
+    selected += 1
+    if selected == len(statements):
+        selected = 0
+    update()
+
+
+def update():
+    global selected
+
+    if selected >= len(statements):
+        selected = len(statements) - 1
+    for x in range(len(statements)):
+        if x == selected:
+            targets[x].config(text='<')
+        else:
+            targets[x].config(text='')
+
+f1 = Frame(tk, padx=10, pady=10)
+f1.grid(row=0, column=0)
+
+l3 = Label(f1, font=('TkDefaultFont', 16), text='LaTeX Proof Editor')
+l3.grid(row=0, column=0)
 
 f2 = LabelFrame(tk, relief=FLAT, padx=10, pady=10)
 f2.grid(row=1, column=0, columnspan=100)
@@ -338,31 +406,44 @@ f3.grid(row=2, column=0, columnspan=100)
 
 m1 = Menu(tk)
 
-system = 'Ctrl-'
+system = 'Ctrl - '
 
 if sys.platform == 'darwin' or sys.platform[:2] == 'os':
     tk.bind_all('<Command-n>', new_call)
     tk.bind_all('<Command-o>', open_call)
     tk.bind_all('<Command-s>', save_call)
     tk.bind_all('<Command-p>', print_call)
+    tk.bind_all('<Command-Up>', up_call)
+    tk.bind_all('<Command-Down>', down_call)
+    tk.bind_all('<Command-minus>', remove_call)
+    tk.bind_all('<Command-equal>', insert_at_call)
     tk.bind_all('<Command-Return>', insert_call)
-    system = 'Cmmd-'
+    system = 'Cmd - '
 else:
     tk.bind_all('<Control-n>', new_call)
     tk.bind_all('<Control-o>', open_call)
     tk.bind_all('<Control-s>', save_call)
     tk.bind_all('<Control-p>', print_call)
+    tk.bind_all('<Control-Up>', up_call)
+    tk.bind_all('<Control-Down>', down_call)
+    tk.bind_all('<Control-minus>', remove_call)
+    tk.bind_all('<Control-equal>', insert_at_call)
     tk.bind_all('<Control-Return>', insert_call)
 
 m2 = Menu(m1, tearoff=0)
-m2.add_command(label='New', command=new_file, accelerator=system + shorts[0])
-m2.add_command(label='Open', command=open_file, accelerator=system + shorts[1])
-m2.add_command(label='Save as', command=save_file, accelerator=system + shorts[2])
+m2.add_command(label='New', command=new_file, accelerator=system + 'N')
+m2.add_command(label='Open', command=open_file, accelerator=system + 'O')
+m2.add_command(label='Save as', command=save_file, accelerator=system + 'S')
 m2.add_separator()
-m2.add_command(label='LaTeX', command=print_file, accelerator=system + shorts[3])
+m2.add_command(label='LaTeX', command=print_file, accelerator=system + 'P')
 
 m3 = Menu(m1, tearoff=0)
-m3.add_command(label='Insert End', command=insert, accelerator=system + shorts[4])
+m3.add_command(label='Target up', command=up, accelerator=system + 'Up')
+m3.add_command(label='Target down', command=down, accelerator=system + 'Down')
+m3.add_separator()
+m3.add_command(label='Remove at', command=up, accelerator=system + 'Hyphen')
+m3.add_command(label='Insert at', command=down, accelerator=system + 'Equals')
+m3.add_command(label='Insert end', command=insert, accelerator=system + 'Enter')
 
 m1.add_cascade(label='File', menu=m2)
 m1.add_cascade(label='Edit', menu=m3)
@@ -448,5 +529,6 @@ def parse(par):
     return line
 
 insert()
+update()
 
 mainloop()
