@@ -3,7 +3,6 @@ import tkFileDialog
 import tkMessageBox
 import os
 import sys
-import base64
 
 tk = Tk()
 tk.wm_title('LaTeX Proof Editor: New File')
@@ -15,12 +14,15 @@ refs = []
 targets = []
 
 stops = ['.', ',', ';', '$', '{', '@']
-codes = ['`a', '`t', '`s', '`r', '`l', '`c', '`par', '`per', '`q', '`nc', '`npar', '`nper', '`n', '`th', '`f', '`d']
+codes = ['`a', '`t', '`s', '`r', '`l', '`c', '`par', '`per', '`q', '`nc', '`npar', '`nper', '`n', '`th', '`f', '`d',
+         '`m', '`sq']
 latex = ['\\angle', '\\triangle', '\\overline', '\\overrightarrow', '\\overleftrightarrow', '\\cong', '\\parallel',
-         '\\perp', '\\square', '\\ncong', '\\nparallel', 'not\\perp', '\\ne', '\\therefore', '\\frac', '^{\circ}']
-bracketed = ['`s', '`r', '`l']
+         '\\perp', '\\square', '\\ncong', '\\nparallel', 'not\\perp', '\\ne', '\\therefore', '\\frac', '^{\circ}',
+         '\\times', '\\sqrt']
+bracketed = ['`s', '`r', '`l', '`sq']
 actual = ['angle', 'triangle', 'segment', 'ray', 'line', 'congruent', 'parallel', 'perpendicular', 'quadrilateral',
-          'not congruent', 'not parallel', 'not perpendicular', 'not equal', 'therefore', 'fraction', 'degree']
+          'not congruent', 'not parallel', 'not perpendicular', 'not equal', 'therefore', 'fraction', 'degree',
+          'multiplication', 'square root']
 
 selected = 0
 
@@ -38,15 +40,15 @@ def save_file():
     out = '['
 
     for x in range(0, len(statements) - 1, 1):
-        s = statements[x]
-        r = reasons[x]
-        f = refs[x]
-        out += '[\'' + s.get() + '\',\'' + r.get() + '\',\'' + f.get() + '\'],'
+        s = statements[x].get()
+        r = reasons[x].get()
+        f = refs[x].get()
+        out += '[\'' + s + '\',\'' + r + '\',\'' + f + '\'],'
 
-    s = statements[-1]
-    r = reasons[-1]
-    f = refs[-1]
-    out += '[\'' + s.get() + '\',\'' + r.get() + '\',\'' + f.get() + '\']]'
+    s = statements[-1].get()
+    r = reasons[-1].get()
+    f = refs[-1].get()
+    out += '[\'' + s + '\',\'' + r + '\',\'' + f + '\']]'
 
     filer = tkFileDialog.asksaveasfile(mode='w', defaultextension='.proof', filetypes=[('Proof File', '*.proof')])
     if filer is None:
@@ -289,6 +291,8 @@ def print_file():
         for x in range(0, len(statements), 1):
             full += str(x+1) + '.&'
             full += parse(statements[x].get()) + '&'
+            if reasons[x].get() == '':
+                full += 'Given'
             full += parse(reasons[x].get()) + '&'
             if not refs[x].get() == '0':
                 full += refs[x].get()
@@ -396,17 +400,17 @@ p2 = Spinbox(f2, from_=1, to=1000, width=5)
 p2.grid(row=0, column=0)
 
 e1 = Entry(f2, width=100)
-e1.grid(row=0, column=1, columnspan=7)
+e1.grid(row=0, column=1)
 
 e2 = Entry(f2, width=100)
-e2.grid(row=1, column=1, columnspan=7)
+e2.grid(row=1, column=1)
 
 f3 = LabelFrame(tk, relief=FLAT, padx=10, pady=10)
 f3.grid(row=2, column=0, columnspan=100)
 
 m1 = Menu(tk)
 
-system = 'Ctrl - '
+system = 'Ctrl+'
 
 if sys.platform == 'darwin' or sys.platform[:2] == 'os':
     tk.bind_all('<Command-n>', new_call)
@@ -418,7 +422,7 @@ if sys.platform == 'darwin' or sys.platform[:2] == 'os':
     tk.bind_all('<Command-minus>', remove_call)
     tk.bind_all('<Command-equal>', insert_at_call)
     tk.bind_all('<Command-Return>', insert_call)
-    system = 'Cmd - '
+    system = 'Cmd-'
 else:
     tk.bind_all('<Control-n>', new_call)
     tk.bind_all('<Control-o>', open_call)
@@ -441,8 +445,8 @@ m3 = Menu(m1, tearoff=0)
 m3.add_command(label='Target up', command=up, accelerator=system + 'Up')
 m3.add_command(label='Target down', command=down, accelerator=system + 'Down')
 m3.add_separator()
-m3.add_command(label='Remove at', command=up, accelerator=system + 'Hyphen')
-m3.add_command(label='Insert at', command=down, accelerator=system + 'Equals')
+m3.add_command(label='Remove at', command=up, accelerator=system + '-')
+m3.add_command(label='Insert at', command=down, accelerator=system + '=')
 m3.add_command(label='Insert end', command=insert, accelerator=system + 'Enter')
 
 m1.add_cascade(label='File', menu=m2)
