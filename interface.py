@@ -13,6 +13,9 @@ line_nums = []
 refs = []
 targets = []
 
+log = []
+history = 0
+
 stops = ['.', ',', ';', '$', '{', '@']
 codes = ['`a', '`t', '`s', '`r', '`l', '`c', '`par', '`per', '`q', '`nc', '`npar', '`nper', '`n', '`th', '`f', '`d',
          '`m', '`sq']
@@ -31,12 +34,7 @@ latex.extend(latex)
 actual.extend([i.title() for i in actual])
 
 
-def save_call(event):
-    event.widget.focus()
-    save_file()
-
-
-def save_file():
+def get_data():
     out = '['
 
     for x in range(0, len(statements) - 1, 1):
@@ -50,11 +48,72 @@ def save_file():
     f = refs[-1].get()
     out += '[\'' + s + '\',\'' + r + '\',\'' + f + '\']]'
 
+    return out
+
+
+def save_call(event):
+    event.widget.focus()
+    save_file()
+
+
+def save_file():
+    out = get_data()
     filer = tkFileDialog.asksaveasfile(mode='w', defaultextension='.proof', filetypes=[('Proof File', '*.proof')])
     if filer is None:
         return
     filer.write(out)
     filer.close()
+
+
+def open_data(data):
+    global statements
+    global reasons
+    global line_nums
+    global refs
+    global targets
+    global selected
+
+    lines = eval(data)
+
+    for x in range(0, len(statements), 1):
+        line_nums[x].grid_forget()
+        statements[x].grid_forget()
+        reasons[x].grid_forget()
+        refs[x].grid_forget()
+        targets[x].grid_forget()
+
+    statements = []
+    reasons = []
+    line_nums = []
+    refs = []
+    targets = []
+
+    for x in range(0, len(lines), 1):
+        line_data = lines[x]
+
+        l1 = Label(f3, text=str(len(statements)+1)+'.', width=5)
+        l1.grid(row=len(statements), column=0)
+
+        en1 = Entry(f3, width=50)
+        en1.grid(row=len(statements), column=1)
+        en1.insert(END, line_data[0])
+
+        en2 = Entry(f3, width=50)
+        en2.grid(row=len(statements), column=2)
+        en2.insert(END, line_data[1])
+
+        sb = Entry(f3, width=10)
+        sb.grid(row=len(statements), column=3)
+        sb.insert(END, line_data[2])
+
+        l2 = Label(f3, width=5)
+        l2.grid(row=len(statements), column=4)
+
+        line_nums.append(l1)
+        statements.append(en1)
+        reasons.append(en2)
+        refs.append(sb)
+        targets.append(l2)
     
     
 def open_call(event):
@@ -75,49 +134,8 @@ def open_file():
         global selected
 
         selected = 0
-        lines = eval(filer.read())
-
         if tkMessageBox.askyesno('', 'Are you sure you want to open a file?\nAll unsaved changes will be lost.'):
-            for x in range(0, len(statements), 1):
-                line_nums[x].grid_forget()
-                statements[x].grid_forget()
-                reasons[x].grid_forget()
-                refs[x].grid_forget()
-                targets[x].grid_forget()
-
-            statements = []
-            reasons = []
-            line_nums = []
-            refs = []
-            targets = []
-
-            for x in range(0, len(lines), 1):
-                line_data = lines[x]
-
-                l1 = Label(f3, text=str(len(statements)+1)+'.', width=5)
-                l1.grid(row=len(statements), column=0)
-
-                en1 = Entry(f3, width=50)
-                en1.grid(row=len(statements), column=1)
-                en1.insert(END, line_data[0])
-
-                en2 = Entry(f3, width=50)
-                en2.grid(row=len(statements), column=2)
-                en2.insert(END, line_data[1])
-
-                sb = Entry(f3, width=10)
-                sb.grid(row=len(statements), column=3)
-                sb.insert(END, line_data[2])
-
-                l2 = Label(f3, width=5)
-                l2.grid(row=len(statements), column=4)
-
-                line_nums.append(l1)
-                statements.append(en1)
-                reasons.append(en2)
-                refs.append(sb)
-                targets.append(l2)
-
+            open_data(filer.read())
             tk.wm_title('LaTeX Proof Editor: ' + os.path.basename(filer.name)[:-6])
     except TypeError:
         tkMessageBox.showerror('', 'Something went wrong reading file!\nThe file might be corrupted')
@@ -132,6 +150,11 @@ def insert_call(event):
 
 
 def insert():
+    try:
+        add_log(get_data())
+    except IndexError:
+        pass
+
     l1 = Label(f3, text=str(len(statements)+1)+'.', width=5)
     l1.grid(row=len(statements), column=0)
 
@@ -160,6 +183,8 @@ def insert_at_call(event):
 
 
 def insert_at():
+    add_log(get_data())
+
     l1 = Label(f3, text=str(len(statements)+1)+'.', width=5)
     l1.grid(row=len(statements), column=0)
 
@@ -202,6 +227,8 @@ def remove_call(event):
 
 def remove():
     if len(line_nums) > 1 and selected < len(line_nums):
+        add_log(get_data())
+
         line_nums[-1].grid_forget()
         statements[selected].grid_forget()
         reasons[selected].grid_forget()
@@ -387,6 +414,41 @@ def update():
         else:
             targets[x].config(text='')
 
+
+def undo_call(event):
+    event.widget.focus()
+    undo()
+
+
+def undo():
+    global history
+    if history > 0:
+        history -= 1
+        open_data(log[history])
+        update()
+
+
+def redo_call(event):
+    event.widget.focus()
+    redo()
+
+
+def redo():
+    global history
+    if history < len(log) - 1:
+        history += 1
+        open_data(log[history])
+        update()
+
+
+def add_log(par):
+    global log
+    global history
+
+    log = log[0:history]
+    log.append(par)
+    history += 1
+
 f1 = Frame(tk, padx=10, pady=10)
 f1.grid(row=0, column=0)
 
@@ -417,6 +479,8 @@ if sys.platform == 'darwin' or sys.platform[:2] == 'os':
     tk.bind_all('<Command-o>', open_call)
     tk.bind_all('<Command-s>', save_call)
     tk.bind_all('<Command-p>', print_call)
+    tk.bind_all('<Command-z>', undo_call)
+    tk.bind_all('<Command-y>', redo_call)
     tk.bind_all('<Command-Up>', up_call)
     tk.bind_all('<Command-Down>', down_call)
     tk.bind_all('<Command-minus>', remove_call)
@@ -428,6 +492,8 @@ else:
     tk.bind_all('<Control-o>', open_call)
     tk.bind_all('<Control-s>', save_call)
     tk.bind_all('<Control-p>', print_call)
+    tk.bind_all('<Control-z>', undo_call)
+    tk.bind_all('<Control-y>', redo_call)
     tk.bind_all('<Control-Up>', up_call)
     tk.bind_all('<Control-Down>', down_call)
     tk.bind_all('<Control-minus>', remove_call)
@@ -442,6 +508,9 @@ m2.add_separator()
 m2.add_command(label='LaTeX', command=print_file, accelerator=system + 'P')
 
 m3 = Menu(m1, tearoff=0)
+m3.add_command(label='Undo', command=undo, accelerator=system + 'Z')
+m3.add_command(label='Redo', command=redo, accelerator=system + 'Y')
+m3.add_separator()
 m3.add_command(label='Target up', command=up, accelerator=system + 'Up')
 m3.add_command(label='Target down', command=down, accelerator=system + 'Down')
 m3.add_separator()
