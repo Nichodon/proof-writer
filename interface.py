@@ -16,16 +16,16 @@ targets = []
 log = []
 history = 0
 
-stops = ['.', ',', ';', '$', '{', '@']
+stops = ['.', ',', ';', '$', '{', '@', '}', '=']
 codes = ['`a', '`t', '`s', '`r', '`l', '`c', '`par', '`per', '`q', '`nc', '`npar', '`nper', '`n', '`th', '`f', '`d',
-         '`m', '`sq']
+         '`m', '`sq', '`sim']
 latex = ['\\angle', '\\triangle', '\\overline', '\\overrightarrow', '\\overleftrightarrow', '\\cong', '\\parallel',
          '\\perp', '\\square', '\\ncong', '\\nparallel', 'not\\perp', '\\ne', '\\therefore', '\\frac', '^{\circ}',
-         '\\times', '\\sqrt']
+         '\\times', '\\sqrt', '\\sim']
 bracketed = ['`s', '`r', '`l', '`sq']
 actual = ['angle', 'triangle', 'segment', 'ray', 'line', 'congruent', 'parallel', 'perpendicular', 'quadrilateral',
           'not congruent', 'not parallel', 'not perpendicular', 'not equal', 'therefore', 'fraction', 'degree',
-          'multiplication', 'square root']
+          'multiplication', 'square root', 'similar']
 
 selected = 0
 
@@ -38,13 +38,13 @@ def get_data():
     out = '['
 
     for x in range(0, len(statements) - 1, 1):
-        s = statements[x].get()
-        r = reasons[x].get()
+        s = parse(statements[x].get()).replace('\\', '\\\\')
+        r = parse(reasons[x].get()).replace('\\', '\\\\')
         f = refs[x].get()
         out += '[\'' + s + '\',\'' + r + '\',\'' + f + '\'],'
 
-    s = statements[-1].get()
-    r = reasons[-1].get()
+    s = parse(statements[-1].get()).replace('\\', '\\\\')
+    r = parse(reasons[-1].get()).replace('\\', '\\\\')
     f = refs[-1].get()
     out += '[\'' + s + '\',\'' + r + '\',\'' + f + '\']]'
 
@@ -91,19 +91,24 @@ def open_data(data):
     for x in range(0, len(lines), 1):
         line_data = lines[x]
 
+        for y in range(0, len(line_data), 1):
+            for z in range(0, len(latex), 1):
+                line_data[y] = line_data[y].replace(latex[z], codes[z])
+            print line_data[y]
+
         l1 = Label(f3, text=str(len(statements)+1)+'.', width=5)
         l1.grid(row=len(statements), column=0)
 
-        en1 = Entry(f3, width=50)
-        en1.grid(row=len(statements), column=1)
+        en1 = Entry(f3, width=50, borderwidth=0, highlightbackground='#cccccc', highlightthickness=1)
+        en1.grid(row=len(statements), column=1, padx=1)
         en1.insert(END, line_data[0])
 
-        en2 = Entry(f3, width=50)
-        en2.grid(row=len(statements), column=2)
+        en2 = Entry(f3, width=50, borderwidth=0, highlightbackground='#cccccc', highlightthickness=1)
+        en2.grid(row=len(statements), column=2, padx=1)
         en2.insert(END, line_data[1])
 
-        sb = Entry(f3, width=10)
-        sb.grid(row=len(statements), column=3)
+        sb = Entry(f3, width=10, borderwidth=0, highlightbackground='#cccccc', highlightthickness=1)
+        sb.grid(row=len(statements), column=3, padx=1)
         sb.insert(END, line_data[2])
 
         l2 = Label(f3, width=5)
@@ -132,11 +137,13 @@ def open_file():
         global refs
         global targets
         global selected
+        global log
 
         selected = 0
         if tkMessageBox.askyesno('', 'Are you sure you want to open a file?\nAll unsaved changes will be lost.'):
             open_data(filer.read())
             tk.wm_title('LaTeX Proof Editor: ' + os.path.basename(filer.name)[:-6])
+            log = []
     except TypeError:
         tkMessageBox.showerror('', 'Something went wrong reading file!\nThe file might be corrupted')
     except SyntaxError:
@@ -158,14 +165,14 @@ def insert():
     l1 = Label(f3, text=str(len(statements)+1)+'.', width=5)
     l1.grid(row=len(statements), column=0)
 
-    en1 = Entry(f3, width=50)
-    en1.grid(row=len(statements), column=1)
+    en1 = Entry(f3, width=50, borderwidth=0, highlightbackground='#cccccc', highlightthickness=1)
+    en1.grid(row=len(statements), column=1, padx=1)
 
-    en2 = Entry(f3, width=50)
-    en2.grid(row=len(statements), column=2)
+    en2 = Entry(f3, width=50, borderwidth=0, highlightbackground='#cccccc', highlightthickness=1)
+    en2.grid(row=len(statements), column=2, padx=1)
 
-    sb = Entry(f3, width=10)
-    sb.grid(row=len(statements), column=3)
+    sb = Entry(f3, width=10, borderwidth=0, highlightbackground='#cccccc', highlightthickness=1)
+    sb.grid(row=len(statements), column=3, padx=1)
 
     l2 = Label(f3, width=5)
     l2.grid(row=len(statements), column=4)
@@ -188,14 +195,14 @@ def insert_at():
     l1 = Label(f3, text=str(len(statements)+1)+'.', width=5)
     l1.grid(row=len(statements), column=0)
 
-    en1 = Entry(f3, width=50)
-    en1.grid(row=selected, column=1)
+    en1 = Entry(f3, width=50, borderwidth=0, highlightbackground='#cccccc', highlightthickness=1)
+    en1.grid(row=selected, column=1, padx=1)
 
-    en2 = Entry(f3, width=50)
-    en2.grid(row=selected, column=2)
+    en2 = Entry(f3, width=50, borderwidth=0, highlightbackground='#cccccc', highlightthickness=1)
+    en2.grid(row=selected, column=2, padx=1)
 
-    sb = Entry(f3, width=10)
-    sb.grid(row=selected, column=3)
+    sb = Entry(f3, width=10, borderwidth=0, highlightbackground='#cccccc', highlightthickness=1)
+    sb.grid(row=selected, column=3, padx=1)
 
     l2 = Label(f3, width=5)
     l2.grid(row=len(statements), column=4)
@@ -269,8 +276,8 @@ def print_file():
     tl = Toplevel()
     tl.title('LaTeX options')
 
-    f5 = LabelFrame(tl, text='Enumeration', padx=5, pady=5)
-    f5.grid(row=0, column=0)
+    f5 = LabelFrame(tl, text='Enumeration', padx=10, pady=10)
+    f5.grid(row=0, column=0, padx=10, pady=10)
 
     v1 = IntVar()
 
@@ -283,15 +290,15 @@ def print_file():
     v2 = StringVar()
     counter = '\\setcounter{enumi}{' + str(int(p2.get()) - 1) + '}'
 
-    f6 = LabelFrame(tl, text='Set counter', padx=5, pady=5)
-    f6.grid(row=0, column=1)
+    f6 = LabelFrame(tl, text='Set counter', padx=10, pady=10)
+    f6.grid(row=0, column=1, padx=10, pady=10)
 
     cb = Checkbutton(f6, text='Enable', variable=v2, onvalue=counter, offvalue='', padx=5, pady=5)
     cb.grid(row=0, column=0)
     cb.select()
 
-    b4 = Button(tl, text='Copy LaTeX', command=tl.destroy)
-    b4.grid(row=1, column=0, columnspan=2)
+    b4 = Button(tl, text='Continue', command=tl.destroy)
+    b4.grid(row=1, column=0, columnspan=2, padx=10, pady=10)
 
     tl.bind('<FocusOut>', alarm_call)
     tl.focus_force()
@@ -339,34 +346,11 @@ def new_call(event):
 
 
 def new_file():
-    global statements
-    global reasons
-    global line_nums
-    global refs
-    global targets
+    global log
 
     if tkMessageBox.askyesno('', 'Are you sure you want to create a new file?\nAll unsaved changes will be lost.'):
-        for x in statements:
-            x.grid_forget()
-        for x in reasons:
-            x.grid_forget()
-        for x in line_nums:
-            x.grid_forget()
-        for x in refs:
-            x.grid_forget()
-        for x in targets:
-            x.grid_forget()
-
-        statements = []
-        reasons = []
-        line_nums = []
-        refs = []
-        targets = []
-
-        e1.delete(0, END)
-        e2.delete(0, END)
-
-        insert()
+        open_data('[["","",""]]')
+        log = []
         update()
 
 
@@ -458,17 +442,17 @@ l3.grid(row=0, column=0)
 f2 = LabelFrame(tk, relief=FLAT, padx=10, pady=10)
 f2.grid(row=1, column=0, columnspan=100)
 
-p2 = Spinbox(f2, from_=1, to=1000, width=5)
-p2.grid(row=0, column=0)
+p2 = Spinbox(f2, from_=1, to=100, width=5, borderwidth=0, highlightbackground='#cccccc', highlightthickness=1)
+p2.grid(row=0, column=0, padx=1)
 
-e1 = Entry(f2, width=100)
-e1.grid(row=0, column=1)
+e1 = Entry(f2, width=100, borderwidth=0, highlightbackground='#cccccc', highlightthickness=1)
+e1.grid(row=0, column=1, padx=1, pady=1)
 
-e2 = Entry(f2, width=100)
-e2.grid(row=1, column=1)
+e2 = Entry(f2, width=100, borderwidth=0, highlightbackground='#cccccc', highlightthickness=1)
+e2.grid(row=1, column=1, padx=1, pady=1)
 
 f3 = LabelFrame(tk, relief=FLAT, padx=10, pady=10)
-f3.grid(row=2, column=0, columnspan=100)
+f3.grid(row=3, column=0, columnspan=100)
 
 m1 = Menu(tk)
 
