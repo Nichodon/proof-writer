@@ -46,7 +46,8 @@ def get_data():
     s = parse(statements[-1].get()).replace('\\', '\\\\')
     r = parse(reasons[-1].get()).replace('\\', '\\\\')
     f = refs[-1].get()
-    out += '[\'' + s + '\',\'' + r + '\',\'' + f + '\']]'
+    h = str(p2.get()) + ',\'' + e1.get() + '\',\'' + e2.get()
+    out += '[\'' + s + '\',\'' + r + '\',\'' + f + '\']]#[' + h + '\']'
 
     return out
 
@@ -74,6 +75,20 @@ def open_data(data):
     global selected
 
     lines = eval(data)
+    header = [1, '', '']
+    try:
+        header = eval(data.split('#')[1])
+    except IndexError:
+        pass
+
+    p2.delete(0, 'end')
+    p2.insert(0, header[0])
+
+    e1.delete(0, 'end')
+    e1.insert(0, header[1])
+
+    e2.delete(0, 'end')
+    e2.insert(0, header[2])
 
     for x in range(0, len(statements), 1):
         line_nums[x].grid_forget()
@@ -94,7 +109,6 @@ def open_data(data):
         for y in range(0, len(line_data), 1):
             for z in range(0, len(latex), 1):
                 line_data[y] = line_data[y].replace(latex[z], codes[z])
-            print line_data[y]
 
         l1 = Label(f3, text=str(len(statements)+1)+'.', width=5)
         l1.grid(row=len(statements), column=0)
@@ -508,7 +522,7 @@ m1.add_cascade(label='Edit', menu=m3)
 tk.config(menu=m1)
 
 tk.protocol('WM_DELETE_WINDOW', closed)
-tk.resizable(False, True)
+tk.resizable(False, False)
 tk.attributes("-topmost", True)
 
 
